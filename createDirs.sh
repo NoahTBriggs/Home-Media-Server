@@ -43,20 +43,7 @@
 #   4 - Error adding "$SRV_USER" user (if it doesn't already exist)
 #   5 - Error setting ownership and permissions
 #   6 - (FOR FUTURE IMPLEMENTATIONS) Error retrieving user and group IDs
-
-###############################################################################
-## USER CONFIGURATION SECTION - MODIFY AS NEEDED                              #
-###############################################################################
-
-# Desired Media Server Directory 
-# (Will be created if it doesn't already exist)
-SRV_DIR="/srv-test" # (example: "/srv", "/media", "/data", etc.)
-
-# Desired User Name For Media Server Ownership 
-# (Will be created if it doesn't already exist)
-SRV_USER="media-srv" # (example: "media-srv", "home-srv", "media", etc.)
-
-###############################################################################
+# Load environment variables from .env file if it exists
 
 echo "Performing Root Privilege Check..."
 if [ "$EUID" -ne 0 ]; then
@@ -66,6 +53,30 @@ if [ "$EUID" -ne 0 ]; then
 fi
 echo "Root Privilege Check Passed."
 echo ""
+
+echo "Checking For .env File..."
+if [ -f ".env" ]; then
+  echo "  .env file Found..."
+else
+  echo "  No .env file found. Creating one with default values..."
+  cat > .env << EOF
+# Environment variables for media server setup
+# Modify these as needed
+
+# Desired Media Server Directory
+# (Will be created if it doesn't already exist)
+SRV_DIR="/srv-test"
+
+# Desired User Name For Media Server Ownership
+# (Will be created if it doesn't already exist)
+SRV_USER="media-srv"
+EOF
+  echo "  .env created with defaults."
+fi
+set -a
+source .env
+set +a
+echo ".env Loaded."
 
 echo "Backing Up And Formatting $SRV_DIR (if it exists)..."
 if [ -d "$SRV_DIR" ] && [ ! -w "$SRV_DIR" ]; then
@@ -107,6 +118,11 @@ else
   echo "  Warning: docker-compose.yml not found in current directory."
   echo "Copy Unsuccessful."
 fi
+
+# Copy .env file if it exists
+echo "Copying .env to $SRV_DIR/docker/..."
+cp ".env" "$SRV_DIR/docker/" && \
+echo ".env File Copied Successfully."
 echo ""
 
 echo "Setting Permissions And Ownership..."
@@ -125,7 +141,7 @@ echo "  Setting ownership..."
   chmod -R 755 "$SRV_DIR"/ && \
   echo "  Recursively applying permissions..." && \
   find "$SRV_DIR" -type d -exec chmod g+s {} \;; } || \
-{ echo "Failed to set ownership and permissions."; exit 5; }
+{ echo "Failed To Set Ownership And Permissions."; exit 5; }
 echo "Permissions And Ownership Set Successfully."
 
 # echo "Retrieving User ID and Group ID for .yml configuration..."

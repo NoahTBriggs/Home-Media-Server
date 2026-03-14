@@ -5,9 +5,9 @@ services:
     ports:
       - "8096:8096"
     volumes:
-      - /srv/docker/appdata/jellyfin/config:/config
-      - /srv/docker/appdata/jellyfin/cache:/cache
-      - /srv/media:/media
+      - ${SRV_DIR}/docker/appdata/jellyfin/config:/config
+      - ${SRV_DIR}/docker/appdata/jellyfin/cache:/cache
+      - ${SRV_DIR}/media:/media
     restart: unless-stopped
 
   sonarr:
@@ -16,9 +16,9 @@ services:
     ports:
       - "8989:8989"
     volumes:
-      - /srv/docker/appdata/sonarr/config:/config
-      - /srv/media/shows:/shows
-      - /srv/torrents/complete:/downloads
+      - ${SRV_DIR}/docker/appdata/sonarr/config:/config
+      - ${SRV_DIR}/media/shows:/shows
+      - ${SRV_DIR}/torrents/complete:/downloads
     restart: unless-stopped
 
   radarr:
@@ -27,9 +27,9 @@ services:
     ports:
       - "7878:7878"
     volumes:
-      - /srv/docker/appdata/radarr/config:/config
-      - /srv/media/movies:/movies
-      - /srv/torrents/complete:/downloads
+      - ${SRV_DIR}/docker/appdata/radarr/config:/config
+      - ${SRV_DIR}/media/movies:/movies
+      - ${SRV_DIR}/torrents/complete:/downloads
     restart: unless-stopped
 
   prowlarr:
@@ -38,7 +38,7 @@ services:
     ports:
       - "9696:9696"
     volumes:
-      - /srv/docker/appdata/prowlarr/config:/config
+      - ${SRV_DIR}/docker/appdata/prowlarr/config:/config
     restart: unless-stopped
 
   qbittorrent:
@@ -48,8 +48,8 @@ services:
       - "8080:8080"
       - "6881:6881"
     volumes:
-      - /srv/docker/appdata/qbittorrent/config:/config
-      - /srv/torrents:/downloads
+      - ${SRV_DIR}/docker/appdata/qbittorrent/config:/config
+      - ${SRV_DIR}/torrents:/downloads
     restart: unless-stopped
 
   bazarr:
@@ -58,9 +58,9 @@ services:
     ports:
       - "6767:6767"
     volumes:
-      - /srv/docker/appdata/bazarr/config:/config
-      - /srv/media/movies:/movies
-      - /srv/media/shows:/shows
+      - ${SRV_DIR}/docker/appdata/bazarr/config:/config
+      - ${SRV_DIR}/media/movies:/movies
+      - ${SRV_DIR}/media/shows:/shows
     restart: unless-stopped
 
   overseerr:
@@ -69,5 +69,5 @@ services:
     ports:
       - "5055:5055"
     volumes:
-      - /srv/docker/appdata/overseerr/config:/app/config
+      - ${SRV_DIR}/docker/appdata/overseerr/config:/app/config
     restart: unless-stopped
