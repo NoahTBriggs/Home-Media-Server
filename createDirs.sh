@@ -14,11 +14,17 @@
 # └── docker               # Internal Docker Container Data
 #     └── appdata
 #         ├── jellyfin
+#         │   └── config
 #         ├── sonarr
+#         │   └── config
 #         ├── radarr
+#         │   └── config
 #         ├── prowlarr
+#         │   └── config
 #         ├── bazarr
+#         │   └── config
 #         └── overseerr
+#             └── config
 
 # NOTE: This script should be run with root privileges to ensure that the 
 #       created directories have the correct ownership and permissions for the 
@@ -31,16 +37,16 @@
 #   1 - Not run as root
 #   2 - Error creating directories
 
-# if [ "$EUID" -ne 0 ]; then
-#   echo "This script must be run as root. Please run with sudo or as a root user."
-#   echo "Usage: sudo ./createDirs.sh"
-#   exit 1
-# fi
+if [ "$EUID" -ne 0 ]; then
+  echo "This script must be run as root. Please run with sudo or as a root user."
+  echo "Usage: sudo ./createDirs.sh"
+  exit 1
+fi
 
-{ mkdir -p "./srv/"{"torrents","transfers","media","docker/appdata"} && \
-  mkdir -p "./srv/torrents/"{"complete","incomplete"} && \
-  mkdir -p "./srv/media/"{"movies","shows","music","personal_media"} && \
-  mkdir -p "./srv/docker/appdata/"{"jellyfin","sonarr","radarr","prowlarr","bazarr","overseerr","qbittorrent"} && \
-  mv "./docker-compose.yml" "./srv/docker/" && \
+{ mkdir -p "/srv/"{"torrents","transfers","media","docker/appdata"} && \
+  mkdir -p "/srv/torrents/"{"complete","incomplete"} && \
+  mkdir -p "/srv/media/"{"movies","shows","music","personal_media"} && \
+  mkdir -p "/srv/docker/appdata/"{"jellyfin/config","jellyfin/cache","sonarr/config","radarr/config","prowlarr/config","bazarr/config","overseerr/config","qbittorrent/config"} && \
+  mv "./docker-compose.yml" "/srv/docker/" && \
   echo "Directories created successfully."; } || \
   echo "An error occurred while creating directories." && exit 2

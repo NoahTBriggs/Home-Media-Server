@@ -5,8 +5,8 @@ services:
     ports:
       - "8096:8096"
     volumes:
-      - /srv/media-stack/containers/jellyfin/config:/config
-      - /srv/media-stack/containers/jellyfin/cache:/cache
+      - /srv/docker/appdata/jellyfin/config:/config
+      - /srv/docker/appdata/jellyfin/cache:/cache
       - /srv/media:/media
     restart: unless-stopped
 
@@ -16,9 +16,9 @@ services:
     ports:
       - "8989:8989"
     volumes:
-      - /srv/media-stack/containers/sonarr/config:/config
+      - /srv/docker/appdata/sonarr/config:/config
       - /srv/media/shows:/shows
-      - /srv/downloads:/downloads
+      - /srv/torrents/complete:/downloads
     restart: unless-stopped
 
   radarr:
@@ -27,9 +27,9 @@ services:
     ports:
       - "7878:7878"
     volumes:
-      - /srv/media-stack/containers/radarr/config:/config
+      - /srv/docker/appdata/radarr/config:/config
       - /srv/media/movies:/movies
-      - /srv/downloads/:/downloads
+      - /srv/torrents/complete:/downloads
     restart: unless-stopped
 
   prowlarr:
@@ -38,7 +38,7 @@ services:
     ports:
       - "9696:9696"
     volumes:
-      - /srv/media-stack/containers/prowlarr/config:/config
+      - /srv/docker/appdata/prowlarr/config:/config
     restart: unless-stopped
 
   qbittorrent:
@@ -48,8 +48,8 @@ services:
       - "8080:8080"
       - "6881:6881"
     volumes:
-      - /srv/media-stack/containers/qbittorrent/config:/config
-      - /srv/downloads
+      - /srv/docker/appdata/qbittorrent/config:/config
+      - /srv/torrents:/downloads
     restart: unless-stopped
 
   bazarr:
@@ -58,16 +58,16 @@ services:
     ports:
       - "6767:6767"
     volumes:
-      - /srv/media-stack/containers/bazarr/config:/config
+      - /srv/docker/appdata/bazarr/config:/config
       - /srv/media/movies:/movies
       - /srv/media/shows:/shows
     restart: unless-stopped
 
-  jellyseerr:
-    image: fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
+  overseerr:
+    image: lscr.io/linuxserver/overseerr
+    container_name: overseerr
     ports:
       - "5055:5055"
     volumes:
-      - /srv/media-stack/containers/jellyseerr/config:/app/config
+      - /srv/docker/appdata/overseerr/config:/app/config
     restart: unless-stopped
