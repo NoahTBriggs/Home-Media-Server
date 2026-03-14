@@ -50,3 +50,4 @@ fi
   mv "./docker-compose.yml" "/srv/docker/" && \
   echo "Directories created successfully."; } || \
   echo "An error occurred while creating directories." && exit 2
+  
