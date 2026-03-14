@@ -43,6 +43,7 @@
 #   4 - Error adding "$SRV_USER" user (if it doesn't already exist)
 #   5 - Error setting ownership and permissions
 #   6 - (FOR FUTURE IMPLEMENTATIONS) Error retrieving user and group IDs
+#   7 - SRV_DIR set to a critical system directory
 # Load environment variables from .env file if it exists
 
 echo "Performing Root Privilege Check..."
@@ -77,6 +78,21 @@ set -a
 source .env
 set +a
 echo ".env Loaded."
+echo ""
+
+# Safety check: Prevent setting permissions on critical system directories
+if [ "$SRV_DIR" = "" ] || [ "$SRV_DIR" = "/" ] || [ "$SRV_DIR" = "/root" ] || [ "$SRV_DIR" = "/home" ] || [[ "$SRV_DIR" =~ ^/usr|^/var|^/etc ]]; then
+  echo "Error: SRV_DIR cannot be set to a critical system directory."
+  echo "Please edit .env and set SRV_DIR to a safe subdirectory (e.g., \"/srv-test\")."
+  exit 7
+fi
+
+echo "Target Media Server Directory: $SRV_DIR"
+echo "Proposed Media Server User: $SRV_USER"
+echo ""
+
+read -P "Click any key to proceed..." -n 1 -r
+echo ""
 
 echo "Backing Up And Formatting $SRV_DIR (if it exists)..."
 if [ -d "$SRV_DIR" ] && [ ! -w "$SRV_DIR" ]; then
