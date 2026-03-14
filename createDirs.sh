@@ -82,16 +82,20 @@ echo "Configuration Loaded Successfully."
 
 echo "Validating SRV_DIR Value..."
 if [ "$SRV_DIR" = "" ] || [ "$SRV_DIR" = "/" ] || [ "$SRV_DIR" = "/root" ] || [ "$SRV_DIR" = "/home" ] || [[ "$SRV_DIR" =~ ^/usr|^/var|^/etc ]]; then
-  echo "Error: SRV_DIR cannot be set to a critical system directory or \"\"."
-  echo "Please edit .env and set SRV_DIR to a safe subdirectory (e.g., \"/srv-test\")."
+  echo "  Error: SRV_DIR cannot be set to a critical system directory or \"\"."
+  echo "  Please edit .env and set SRV_DIR to a safe subdirectory (e.g., \"/srv-test\")."
   exit 7
 fi
+echo SRV_DIR Value Validated Successfully.
+echo ""
 
+echo "Validating SRV_USER Value..."
 if [ $SRV_USER = "" ] || [[ "$SRV_USER" =~ ^(root|admin|sudo|www-data|nobody)$ ]]; then
-  echo "Error: SRV_USER cannot be set to a critical system user or \"\""
-  echo "Please edit .env and set SRV_DIR to a safe subdirectory (e.g., \"/srv-test\")."
+  echo "  Error: SRV_USER cannot be set to a critical system user or \"\""
+  echo "  Please edit .env and set SRV_USER to a safe name (e.g., \"/srv-test\")."
   exit 7
 fi
+echo SRV_USER Value Validated Successfully.
 echo ""
 
 echo "Target Media Server Directory: $SRV_DIR"
