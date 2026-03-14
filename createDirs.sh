@@ -50,7 +50,7 @@
 
 # Desired Media Server Directory 
 # (Will be created if it doesn't already exist)
-SRV_DIR="/srv" # (example: "/srv", "/media", "/data", etc.)
+SRV_DIR="/srv-test" # (example: "/srv", "/media", "/data", etc.)
 
 # Desired User Name For Media Server Ownership 
 # (Will be created if it doesn't already exist)
@@ -63,54 +63,70 @@ if [ "$EUID" -ne 0 ]; then
   echo "  This script must be run as root. Please run with sudo or as a root user."
   echo "  Usage: sudo ./createDirs.sh"
   exit 1
-else
-  echo "  Root Privilege Check Passed."
 fi
+echo "Root Privilege Check Passed."
+echo ""
 
-echo "Checking $SRV_DIR writability as root user (if it exists)..."
-if [ -d "$SRV_DIR" ] && [ ! -w "$SRV_DIR" ] 
-then
+echo "Backing Up And Formatting $SRV_DIR (if it exists)..."
+if [ -d "$SRV_DIR" ] && [ ! -w "$SRV_DIR" ]; then
   echo "  $SRV_DIR exists but is not writable. Cannot proceed."
   exit 2
-elif [ -d "$SRV_DIR" ] && [ "$(ls -A $SRV_DIR)" ]
-then
+elif [ -d "$SRV_DIR" ] && [ "$(ls -A $SRV_DIR)" ]; then
+  echo "  $SRV_DIR exists, creating a backup..."
   SRV_BACKUP="/tmp/srv_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
-  tar -czf $SRV_BACKUP $SRV_DIR/ || { echo "Backup failed."; exit 2; }
-  rm -rf $SRV_DIR/* || { echo "Failed to clear $SRV_DIR after backup."; exit 2; }
-  echo "  Backup created at $SRV_BACKUP"
+  tar -czf "$SRV_BACKUP" -C "$SRV_DIR" . || { echo "Backup Failed."; exit 2; }
+  echo "    Backup created at: $SRV_BACKUP"
+  echo "  Clearing $SRV_DIR for new directory structure..."
+  rm -rf "$SRV_DIR"/* || { echo "Failed To Clear $SRV_DIR After Backup."; exit 2; }
+  echo "    $SRV_DIR cleared."
 else
   echo "  $SRV_DIR will be created."
 fi
+echo "$SRV_DIR Is Ready For Directory Creation."
+echo ""
 
 echo "Creating Directory Structure..."
-{ mkdir -p "$SRV_DIR/"{"torrents","transfers","media","docker/appdata"} && \
+{ echo "  Creating base directories..." && \
+  mkdir -p "$SRV_DIR/"{"torrents","transfers","media","docker/appdata"} && \
+  echo "  Creating torrent subdirs..." && \
   mkdir -p "$SRV_DIR/torrents/"{"complete","incomplete"} && \
+  echo "  Creating media subdirs..." && \
   mkdir -p "$SRV_DIR/media/"{"movies","shows","music","personal_media"} && \
-  mkdir -p "$SRV_DIR/docker/appdata/"{"jellyfin/config","jellyfin/cache","sonarr/config","radarr/config","prowlarr/config","bazarr/config","overseerr/config","qbittorrent/config"} && \
-  echo "  Checking for docker-compose.yml..."
-  if [ -f "./docker-compose.yml" ]
-  then 
-    echo "    Found docker-compose.yml. Moving to $SRV_DIR/docker/."
-    mv "./docker-compose.yml" "$SRV_DIR/docker/"
-  else 
-    echo "    Warning: docker-compose.yml not found in current directory."
-  fi && \
-  echo "  Directories created successfully."; } || \
-  echo "  An error occurred while creating directories." && exit 3
+  echo "  Creating appdata subdirs..." && \
+  mkdir -p "$SRV_DIR/docker/appdata/"{"jellyfin/config","jellyfin/cache","sonarr/config","radarr/config","prowlarr/config","bazarr/config","overseerr/config","qbittorrent/config"}; } || \
+  { echo "Directory Creation failed."; exit 3; }
+echo "Directories Created Successfully."
+echo ""
 
-echo "Setting Permissions..."
-# Adding "$SRV_USER" user if it doesn't already exist
-if ! id -u $SRV_USER &>/dev/null
-then
-  echo "Adding user: $SRV_USER..."
-  useradd -r -s /bin/bash $SRV_USER || { echo "  Failed to create user $SRV_USER."; exit 4; }
+echo "Copying .YML Configuration File To $SRV_DIR/docker/..."
+if [ -f "./docker-compose.yml" ]; then 
+  echo "  Found docker-compose.yml. Copying to $SRV_DIR/docker/."
+  cp "./docker-compose.yml" "$SRV_DIR/docker/"
+  echo "Copy Successful."
+else 
+  echo "  Warning: docker-compose.yml not found in current directory."
+  echo "Copy Unsuccessful."
 fi
+echo ""
+
+echo "Setting Permissions And Ownership..."
+# Adding "$SRV_USER" user if it doesn't already exist
+if ! id -u "$SRV_USER" &>/dev/null; then
+  echo "  Adding new user: $SRV_USER..."
+  useradd -r -s /bin/bash "$SRV_USER" || { echo "  Failed to create user $SRV_USER."; exit 4; }
+else
+  echo "  User $SRV_USER already exists. Skipping user creation."
+fi
+
 # Setting ownership and permissions to entire server
-{ chown -R $SRV_USER:$SRV_USER $SRV_DIR/ && \
-  chmod -R 755 $SRV_DIR/ && \
-  find $SRV_DIR -type d -exec chmod g+s {} \; && \
-  echo "  Permissions set successfully."; } || \
-  echo "  An error occurred while setting permissions." && exit 5
+echo "  Setting ownership..."
+{ chown -R "$SRV_USER":"$SRV_USER" "$SRV_DIR"/ && \
+  echo "  Setting permissions..." && \
+  chmod -R 755 "$SRV_DIR"/ && \
+  echo "  Recursively applying permissions..." && \
+  find "$SRV_DIR" -type d -exec chmod g+s {} \;; } || \
+{ echo "Failed to set ownership and permissions."; exit 5; }
+echo "Permissions And Ownership Set Successfully."
 
 # echo "Retrieving User ID and Group ID for .yml configuration..."
 # { USER_ID=$(id -u $SRV_USER) && \
