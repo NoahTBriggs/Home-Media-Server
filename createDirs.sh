@@ -55,7 +55,9 @@ fi
 echo "Root Privilege Check Passed."
 echo ""
 
-echo "Checking For .env File..."
+echo "Starting Media Server Directory Setup..."
+echo "Importing .env configuration..."
+echo "  Checking For .env File..."
 if [ -f ".env" ]; then
   echo "  .env file Found..."
 else
@@ -74,18 +76,23 @@ SRV_USER="media-srv"
 EOF
   echo "  .env created with defaults."
 fi
-set -a
-source .env
-set +a
-echo ".env Loaded."
-echo ""
+echo "  Loading configuration from .env file..."
+export $(grep -v '^#' .env | xargs) || { echo "Failed to load configuration from .env file."; exit 2; }
+echo "Configuration Loaded Successfully."
 
-# Safety check: Prevent setting permissions on critical system directories
+echo "Validating SRV_DIR Value..."
 if [ "$SRV_DIR" = "" ] || [ "$SRV_DIR" = "/" ] || [ "$SRV_DIR" = "/root" ] || [ "$SRV_DIR" = "/home" ] || [[ "$SRV_DIR" =~ ^/usr|^/var|^/etc ]]; then
-  echo "Error: SRV_DIR cannot be set to a critical system directory."
+  echo "Error: SRV_DIR cannot be set to a critical system directory or \"\"."
   echo "Please edit .env and set SRV_DIR to a safe subdirectory (e.g., \"/srv-test\")."
   exit 7
 fi
+
+if [ $SRV_USER = "" ] || [[ "$SRV_USER" =~ ^(root|admin|sudo|www-data|nobody)$ ]]; then
+  echo "Error: SRV_USER cannot be set to a critical system user or \"\""
+  echo "Please edit .env and set SRV_DIR to a safe subdirectory (e.g., \"/srv-test\")."
+  exit 7
+fi
+echo ""
 
 echo "Target Media Server Directory: $SRV_DIR"
 echo "Proposed Media Server User: $SRV_USER"
