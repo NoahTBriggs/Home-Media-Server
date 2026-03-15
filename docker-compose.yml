@@ -11,7 +11,7 @@ services:
     restart: unless-stopped
 
   sonarr:
-    image: lscr.io/linuxserver/sonarr
+    image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
     ports:
       - "8989:8989"
@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
 
   radarr:
-    image: lscr.io/linuxserver/radarr
+    image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
     ports:
       - "7878:7878"
@@ -33,7 +33,7 @@ services:
     restart: unless-stopped
 
   prowlarr:
-    image: lscr.io/linuxserver/prowlarr
+    image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
     ports:
       - "9696:9696"
@@ -42,7 +42,7 @@ services:
     restart: unless-stopped
 
   qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent
+    image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     ports:
       - "8080:8080"
@@ -53,7 +53,7 @@ services:
     restart: unless-stopped
 
   bazarr:
-    image: lscr.io/linuxserver/bazarr
+    image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
     ports:
       - "6767:6767"
@@ -64,10 +64,10 @@ services:
     restart: unless-stopped
 
   overseerr:
-    image: lscr.io/linuxserver/overseerr
+    image: lscr.io/linuxserver/overseerr:latest
     container_name: overseerr
     ports:
       - "5055:5055"
     volumes:
-      - ${SRV_DIR}/docker/appdata/overseerr/config:/app/config
+      - ${SRV_DIR}/docker/appdata/overseerr/config:/config
     restart: unless-stopped

@@ -102,7 +102,7 @@ echo "Target Media Server Directory: $SRV_DIR"
 echo "Proposed Media Server User: $SRV_USER"
 echo ""
 
-read -P "Click any key to proceed..." -n 1 -r
+read -p "Click any key to proceed..." -n 1 -r
 echo ""
 
 echo "Backing Up And Formatting $SRV_DIR (if it exists)..."
@@ -156,16 +156,17 @@ echo "Setting Permissions And Ownership..."
 # Adding "$SRV_USER" user if it doesn't already exist
 if ! id -u "$SRV_USER" &>/dev/null; then
   echo "  Adding new user: $SRV_USER..."
-  useradd -r -s /bin/bash "$SRV_USER" || { echo "  Failed to create user $SRV_USER."; exit 4; }
+  useradd -r -s /bin/bash -g docker "$SRV_USER" || { echo "  Failed to create user $SRV_USER."; exit 4; }
 else
   echo "  User $SRV_USER already exists. Skipping user creation."
+  usermod -aG docker "$SRV_USER" || { echo "  Failed to add existing user $SRV_USER to docker group."; exit 4; }
 fi
 
 # Setting ownership and permissions to entire server
 echo "  Setting ownership..."
 { chown -R "$SRV_USER":"$SRV_USER" "$SRV_DIR"/ && \
   echo "  Setting permissions..." && \
-  chmod -R 755 "$SRV_DIR"/ && \
+  chmod -R 777 "$SRV_DIR"/ && \
   echo "  Recursively applying permissions..." && \
   find "$SRV_DIR" -type d -exec chmod g+s {} \;; } || \
 { echo "Failed To Set Ownership And Permissions."; exit 5; }
