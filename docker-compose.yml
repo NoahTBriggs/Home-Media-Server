@@ -63,11 +63,11 @@ services:
       - ${SRV_DIR}/media/shows:/shows
     restart: unless-stopped
 
-  overseerr:
-    image: lscr.io/linuxserver/overseerr:latest
-    container_name: overseerr
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
     ports:
       - "5055:5055"
     volumes:
-      - ${SRV_DIR}/docker/appdata/overseerr/config:/config
+      - ${SRV_DIR}/docker/appdata/jellyseerr/config:/config
     restart: unless-stopped
