@@ -26,7 +26,8 @@
 #         ├── bazarr
 #         │   └── config
 #         └── jellyseerr
-#             └── config
+#             └── app
+#                 └── config
 
 # NOTE: This script must be run with root privileges to ensure that the created
 #       directories have the correct ownership and permissions for the media
@@ -131,7 +132,7 @@ echo "Creating Directory Structure..."
   echo "  Creating media subdirs..." && \
   mkdir -p "$SRV_DIR/media/"{"movies","shows","music","personal_media"} && \
   echo "  Creating appdata subdirs..." && \
-  mkdir -p "$SRV_DIR/docker/appdata/"{"jellyfin/config","jellyfin/cache","sonarr/config","radarr/config","prowlarr/config","bazarr/config","jellyseerr/config","qbittorrent/config"}; } || \
+  mkdir -p "$SRV_DIR/docker/appdata/"{"jellyfin/config","jellyfin/cache","sonarr/config","radarr/config","prowlarr/config","bazarr/config","jellyseerr/app/config","qbittorrent/config"}; } || \
   { echo "Directory Creation failed."; exit 3; }
 echo "Directories Created Successfully."
 echo ""

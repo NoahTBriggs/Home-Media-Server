@@ -69,5 +69,5 @@ services:
     ports:
       - "5055:5055"
     volumes:
-      - ${SRV_DIR}/docker/appdata/jellyseerr/config:/config
+      - ${SRV_DIR}/docker/appdata/jellyseerr/config:/app/config
     restart: unless-stopped
