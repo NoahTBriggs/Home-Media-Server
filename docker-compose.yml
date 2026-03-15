@@ -8,6 +8,8 @@ services:
       - ${SRV_DIR}/docker/appdata/jellyfin/config:/config
       - ${SRV_DIR}/docker/appdata/jellyfin/cache:/cache
       - ${SRV_DIR}/media:/media
+    devices:
+      - /dev/dri:/dev/dri
     restart: unless-stopped
 
   sonarr:
