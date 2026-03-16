@@ -27,7 +27,7 @@ function set_PUID() {
 function set_IDs() {
   local PUID=$(get_UID);
   local PGID=$PUID;
-  local JELLYFIN_PGID=$(get_video_GID);
+  local JELLYFIN_PGID=$(get_render_GID);
   
   # If the user's UID cannot be found use the default of 1000
   if [ -z "$PUID" ]; then
