@@ -9,7 +9,7 @@ function get_video_GID() {
 }
 
 function get_UID() {
-  echo "$(id -u)"
+  echo "${SUDO_USER:=$(whoami)}"
 }
 
 function set_PGID() {

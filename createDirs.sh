@@ -124,6 +124,9 @@ echo ""
 
 echo "Target Media Server Directory: $SRV_DIR"
 echo "Proposed Media Server User: $SRV_USER"
+echo "Proposed PUID: $PUID"
+echo "Proposed PGID: $PGID"
+echo "Proposed JELLYFIN_PGID: $JELLYFIN_PGID"
 echo ""
 
 read -p "Click any key to proceed..." -n 1 -r
