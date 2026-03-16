@@ -46,6 +46,8 @@
 #   7 - SRV_DIR set to a critical system directory
 # Load environment variables from .env file if it exists
 
+source ./ID_Util.sh
+
 echo "Performing Root Privilege Check..."
 if [ "$EUID" -ne 0 ]; then
   echo "  This script must be run as root. Please run with sudo or as a root user."
@@ -63,19 +65,41 @@ if [ -f ".env" ]; then
 else
   echo "  No .env file found. Creating one with default values..."
   cat > .env << EOF
-# Environment variables for media server setup
-# Modify these as needed
+###############################################################################
+## USER CONFIGURATION - MODIFY AS NEEDED                                      #
+###############################################################################
 
-# Desired Media Server Directory
+# Desired Media Server Directory 
 # (Will be created if it doesn't already exist)
-SRV_DIR="/srv-test"
+# (example: "/srv", "/media", "/data", etc.)
+SRV_DIR="/srv" 
 
-# Desired User Name For Media Server Ownership
+# Desired User Name For Media Server Ownership 
 # (Will be created if it doesn't already exist)
-SRV_USER="media-srv"
+# (example: "media-srv", "home-srv", "media", etc.)
+SRV_USER="docker" 
+
+# Specific User and Group IDs for all Docker Containers
+# (Default (all): "1000")
+PUID="1000"
+PGID="1000"
+JELLYFIN_PGID="1000"
 EOF
   echo "  .env created with defaults."
 fi
+
+read -n1 -p "Do you want to automatically configure PUID and PGIDs [y/n]: " answer
+answer=${answer,,} # Convert to lowercase
+if [[ "$answer" == "y" ]]; then
+  echo ""
+  echo "  Setting PUID and PGIDs based on current user and render/video groups..."
+  set_IDs
+  echo "PUID and PGIDs set successfully."
+else
+  echo ""
+  echo "Skipping automatic PUID and PGID configuration."
+fi
+
 echo "  Loading configuration from .env file..."
 export $(grep -v '^#' .env | xargs) || { echo "Failed to load configuration from .env file."; exit 2; }
 echo "Configuration Loaded Successfully."
@@ -100,6 +124,9 @@ echo ""
 
 echo "Target Media Server Directory: $SRV_DIR"
 echo "Proposed Media Server User: $SRV_USER"
+echo "Proposed PUID: $PUID"
+echo "Proposed PGID: $PGID"
+echo "Proposed JELLYFIN_PGID: $JELLYFIN_PGID"
 echo ""
 
 read -p "Click any key to proceed..." -n 1 -r
@@ -171,10 +198,3 @@ echo "  Setting ownership..."
   find "$SRV_DIR" -type d -exec chmod g+s {} \;; } || \
 { echo "Failed To Set Ownership And Permissions."; exit 5; }
 echo "Permissions And Ownership Set Successfully."
-
-# echo "Retrieving User ID and Group ID for .yml configuration..."
-# { USER_ID=$(id -u $SRV_USER) && \
-#   GROUP_ID=$(id -g $SRV_USER) && \
-#   echo "  User ID: $USER_ID" && \
-#   echo "  Group ID: $GROUP_ID"; } || \
-#   echo "  An error occurred while retrieving user and group IDs." && exit 6
