@@ -1,8 +1,19 @@
 #!/bin/bash
 
 # This script: 
-# - Archives an already existing $SRV_DIR directory to /tmp if it exists
-# - Creates the necessary directory structure and permissions for this media server setup:
+# - Checks for root privileges and exits if not run as root
+#
+# - Optionally automatically configures PUID and PGIDs in the .env file
+#
+# - Validates the SRV_DIR and SRV_USER variables from the .env file to prevent 
+#   critical system directories or users from being used
+#
+# - Performs a backup of the existing SRV_DIR if it exists and is not empty, 
+#   then clears it for new directory structure creation
+#   - Otherwise it creates the SRV_DIR if it doesn't already exist
+#
+# - Creates the necessary directory structure and permissions for this media
+#   server setup:
 # /$SRV_DIR
 # ├── torrents             # Active torrent downloads
 # │   ├── complete           # Completed Torrents
@@ -27,6 +38,11 @@
 #         │   └── config
 #         └── jellyseerr
 #             └── config
+#
+# - Modifies ownership and permissions of the created directories
+#
+# - Copies the docker-compose.yml and .env files to the $SRV_DIR/docker/ 
+#   directory for use by the media server applications
 
 # NOTE: This script must be run with root privileges to ensure that the created
 #       directories have the correct ownership and permissions for the media
@@ -37,14 +53,13 @@
 # Exit Codes:
 #   0 - Success
 #   1 - Root privilege check failed
-#   2 - Backup and subsequent removal of $SRV_DIR failed or $SRV_DIR is not writable (if it 
-#       exists)
-#   3 - Error creating directories
-#   4 - Error adding "$SRV_USER" user (if it doesn't already exist)
-#   5 - Error setting ownership and permissions
-#   6 - (FOR FUTURE IMPLEMENTATIONS) Error retrieving user and group IDs
-#   7 - SRV_DIR set to a critical system directory
-# Load environment variables from .env file if it exists
+#   2 - .env file failed to import
+#   3 - Validation of .env variables failed (SRV_DIR or SRV_USER)
+#   4 - SRV_DIR is not writable
+#   5 - Backup of existing SRV_DIR failed or subsequent clearing of SRV_DIR failed
+#   6 - Directory creation failed
+#   7 - Creation of SRV_USER failed or adding existing SRV_USER to docker group failed
+#   8 - Setting ownership and permissions failed
 
 source ./ID_Util.sh
 
@@ -108,7 +123,7 @@ echo "Validating SRV_DIR Value..."
 if [ "$SRV_DIR" = "" ] || [ "$SRV_DIR" = "/" ] || [ "$SRV_DIR" = "/root" ] || [ "$SRV_DIR" = "/home" ] || [[ "$SRV_DIR" =~ ^/usr|^/var|^/etc ]]; then
   echo "  Error: SRV_DIR cannot be set to a critical system directory or \"\"."
   echo "  Please edit .env and set SRV_DIR to a safe subdirectory (e.g., \"/srv-test\")."
-  exit 7
+  exit 3
 fi
 echo SRV_DIR Value Validated Successfully.
 echo ""
@@ -117,7 +132,7 @@ echo "Validating SRV_USER Value..."
 if [ $SRV_USER = "" ] || [[ "$SRV_USER" =~ ^(root|admin|sudo|www-data|nobody)$ ]]; then
   echo "  Error: SRV_USER cannot be set to a critical system user or \"\""
   echo "  Please edit .env and set SRV_USER to a safe name (e.g., \"/srv-test\")."
-  exit 7
+  exit 3
 fi
 echo SRV_USER Value Validated Successfully.
 echo ""
@@ -135,14 +150,14 @@ echo ""
 echo "Backing Up And Formatting $SRV_DIR (if it exists)..."
 if [ -d "$SRV_DIR" ] && [ ! -w "$SRV_DIR" ]; then
   echo "  $SRV_DIR exists but is not writable. Cannot proceed."
-  exit 2
+  exit 4
 elif [ -d "$SRV_DIR" ] && [ "$(ls -A $SRV_DIR)" ]; then
   echo "  $SRV_DIR exists, creating a backup..."
   SRV_BACKUP="/tmp/srv_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
-  tar -czf "$SRV_BACKUP" -C "$SRV_DIR" . || { echo "Backup Failed."; exit 2; }
+  tar -czf "$SRV_BACKUP" -C "$SRV_DIR" . || { echo "Backup Failed."; exit 5; }
   echo "    Backup created at: $SRV_BACKUP"
   echo "  Clearing $SRV_DIR for new directory structure..."
-  rm -rf "$SRV_DIR"/* || { echo "Failed To Clear $SRV_DIR After Backup."; exit 2; }
+  rm -rf "$SRV_DIR"/* || { echo "Failed To Clear $SRV_DIR After Backup."; exit 5; }
   echo "    $SRV_DIR cleared."
 else
   echo "  $SRV_DIR will be created."
@@ -159,7 +174,7 @@ echo "Creating Directory Structure..."
   mkdir -p "$SRV_DIR/media/"{"movies","shows","music","personal_media"} && \
   echo "  Creating appdata subdirs..." && \
   mkdir -p "$SRV_DIR/docker/appdata/"{"jellyfin/config","jellyfin/cache","sonarr/config","radarr/config","prowlarr/config","bazarr/config","jellyseerr/config","qbittorrent/config"}; } || \
-  { echo "Directory Creation failed."; exit 3; }
+  { echo "Directory Creation failed."; exit 6; }
 echo "Directories Created Successfully."
 echo ""
 
@@ -183,10 +198,10 @@ echo "Setting Permissions And Ownership..."
 # Adding "$SRV_USER" user if it doesn't already exist
 if ! id -u "$SRV_USER" &>/dev/null; then
   echo "  Adding new user: $SRV_USER..."
-  useradd -r -s /bin/bash -g docker "$SRV_USER" || { echo "  Failed to create user $SRV_USER."; exit 4; }
+  useradd -r -s /bin/bash -g docker "$SRV_USER" || { echo "  Failed to create user $SRV_USER."; exit 7; }
 else
   echo "  User $SRV_USER already exists. Skipping user creation."
-  usermod -aG docker "$SRV_USER" || { echo "  Failed to add existing user $SRV_USER to docker group."; exit 4; }
+  usermod -aG docker "$SRV_USER" || { echo "  Failed to add existing user $SRV_USER to docker group."; exit 7; }
 fi
 
 # Setting ownership and permissions to entire server
@@ -196,5 +211,5 @@ echo "  Setting ownership..."
   chmod -R 777 "$SRV_DIR"/ && \
   echo "  Recursively applying permissions..." && \
   find "$SRV_DIR" -type d -exec chmod g+s {} \;; } || \
-{ echo "Failed To Set Ownership And Permissions."; exit 5; }
+{ echo "Failed To Set Ownership And Permissions."; exit 8; }
 echo "Permissions And Ownership Set Successfully."
