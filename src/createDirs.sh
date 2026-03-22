@@ -61,7 +61,7 @@
 #   7 - Creation of SRV_USER failed or adding existing SRV_USER to docker group failed
 #   8 - Setting ownership and permissions failed
 
-source ./ID_Util.sh
+source ../util/ID_Util.sh
 
 echo "Performing Root Privilege Check..."
 if [ "$EUID" -ne 0 ]; then
