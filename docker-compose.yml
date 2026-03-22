@@ -5,12 +5,20 @@ services:
     environment:
       - PUID=${PUID}
       - PGID=${JELLYFIN_PGID}
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "8096:8096"
     volumes:
       - ${SRV_DIR}/docker/appdata/jellyfin/config:/config
       - ${SRV_DIR}/docker/appdata/jellyfin/cache:/cache
-      - ${SRV_DIR}/media:/media
+      - ${SRV_DIR}/media:/media:rw
     devices:
       - /dev/dri:/dev/dri
     restart: unless-stopped
