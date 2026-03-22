@@ -153,11 +153,11 @@ if [ -d "$SRV_DIR" ] && [ ! -w "$SRV_DIR" ]; then
   exit 4
 elif [ -d "$SRV_DIR" ] && [ "$(ls -A $SRV_DIR)" ]; then
   echo "  $SRV_DIR exists, creating a backup..."
-  SRV_BACKUP="/tmp/srv_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
+  SRV_BACKUP="./srv_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
   tar -czf "$SRV_BACKUP" -C "$SRV_DIR" . || { echo "Backup Failed."; exit 5; }
   echo "    Backup created at: $SRV_BACKUP"
   echo "  Clearing $SRV_DIR for new directory structure..."
-  rm -rf "$SRV_DIR"/* || { echo "Failed To Clear $SRV_DIR After Backup."; exit 5; }
+  rm -rf "${SRV_DIR:?}"/* || { echo "Failed To Clear $SRV_DIR After Backup."; exit 5; }
   echo "    $SRV_DIR cleared."
 else
   echo "  $SRV_DIR will be created."
