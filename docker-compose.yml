@@ -2,9 +2,7 @@ services:
   jellyfin:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
-    environment:
-      - PUID=${PUID}
-      - PGID=${JELLYFIN_PGID}
+    user: "${PUID}:${JELLYFIN_PGID}"
     read_only: true
     tmpfs:
       - /tmp
@@ -14,11 +12,19 @@ services:
     security_opt:
       - no-new-privileges:true
     ports:
-      - "8096:8096"
+      # (Pick One):
+      # - "127.0.0.1:8096:8096" # Not visible on LAN (localhost/server only)
+      - "8096:8096" # Visible on LAN (exposed if port forwarded)
     volumes:
       - ${SRV_DIR}/docker/appdata/jellyfin/config:/config
       - ${SRV_DIR}/docker/appdata/jellyfin/cache:/cache
-      - ${SRV_DIR}/media:/media:rw
+      - ${SRV_DIR}/media:/media:ro # Read-only access to media directories
     devices:
       - /dev/dri:/dev/dri
+    networks:
+      - media_net
     restart: unless-stopped
+
+networks:
+  media_net:
+    driver: bridge
