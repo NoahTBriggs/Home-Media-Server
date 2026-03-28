@@ -153,11 +153,11 @@ if [ -d "$SRV_DIR" ] && [ ! -w "$SRV_DIR" ]; then
   exit 4
 elif [ -d "$SRV_DIR" ] && [ "$(ls -A $SRV_DIR)" ]; then
   echo "  $SRV_DIR exists, creating a backup..."
-  SRV_BACKUP="/tmp/srv_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
+  SRV_BACKUP="./srv_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
   tar -czf "$SRV_BACKUP" -C "$SRV_DIR" . || { echo "Backup Failed."; exit 5; }
   echo "    Backup created at: $SRV_BACKUP"
   echo "  Clearing $SRV_DIR for new directory structure..."
-  rm -rf "$SRV_DIR"/* || { echo "Failed To Clear $SRV_DIR After Backup."; exit 5; }
+  rm -rf "${SRV_DIR:?}"/* || { echo "Failed To Clear $SRV_DIR After Backup."; exit 5; }
   echo "    $SRV_DIR cleared."
 else
   echo "  $SRV_DIR will be created."
@@ -210,10 +210,10 @@ fi
 
 # Setting ownership and permissions to entire server
 echo "  Setting ownership..."
-{ chown -R "$SRV_USER":"$SRV_USER" "$SRV_DIR"/ && \
+{ chown -R "$SRV_USER":"$SRV_USER" "${SRV_DIR:?}"/ && \
   echo "  Setting permissions..." && \
-  chmod -R 777 "$SRV_DIR"/ && \
+  chmod -R 777 "${SRV_DIR:?}"/ && \
   echo "  Recursively applying permissions..." && \
-  find "$SRV_DIR" -type d -exec chmod g+s {} \;; } || \
+  find "${SRV_DIR:?}" -type d -exec chmod g+s {} \;; } || \
 { echo "Failed To Set Ownership And Permissions."; exit 8; }
 echo "Permissions And Ownership Set Successfully."
