@@ -206,10 +206,10 @@ fi
 
 # Setting ownership and permissions to entire server
 echo "  Setting ownership..."
-{ chown -R "$SRV_USER":"$SRV_USER" "$SRV_DIR"/ && \
+{ chown -R "$SRV_USER":"$SRV_USER" "${SRV_DIR:?}"/ && \
   echo "  Setting permissions..." && \
-  chmod -R 777 "$SRV_DIR"/ && \
+  chmod -R 777 "${SRV_DIR:?}"/ && \
   echo "  Recursively applying permissions..." && \
-  find "$SRV_DIR" -type d -exec chmod g+s {} \;; } || \
+  find "${SRV_DIR:?}" -type d -exec chmod g+s {} \;; } || \
 { echo "Failed To Set Ownership And Permissions."; exit 8; }
 echo "Permissions And Ownership Set Successfully."
