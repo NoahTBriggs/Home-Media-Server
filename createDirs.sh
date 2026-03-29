@@ -15,10 +15,6 @@
 # - Creates the necessary directory structure and permissions for this media
 #   server setup:
 # /$SRV_DIR
-# ├── torrents             # Active torrent downloads
-# │   ├── complete           # Completed Torrents
-# │   └── incomplete         # Active Torrents
-# ├── transfers            # Clean files ready for import into media library
 # ├── media                # Organized media library
 # │   ├── movies             # Downloaded Movies
 # │   ├── shows              # Downloaded TV Shows
@@ -26,18 +22,9 @@
 # │   └── personal_media     # Downloaded Personal Media (home videos, etc.)
 # └── docker               # Internal Docker Container Data
 #     └── appdata
-#         ├── jellyfin
-#         │   └── config
-#         ├── sonarr
-#         │   └── config
-#         ├── radarr
-#         │   └── config
-#         ├── prowlarr
-#         │   └── config
-#         ├── bazarr
-#         │   └── config
-#         └── jellyseerr
-#             └── config
+#         └── jellyfin
+#             ├── config
+#             └── cache
 #
 # - Modifies ownership and permissions of the created directories
 #
@@ -167,13 +154,11 @@ echo ""
 
 echo "Creating Directory Structure..."
 { echo "  Creating base directories..." && \
-  mkdir -p "$SRV_DIR/"{"torrents","transfers","media","docker/appdata"} && \
-  echo "  Creating torrent subdirs..." && \
-  mkdir -p "$SRV_DIR/torrents/"{"complete","incomplete"} && \
+  mkdir -p "$SRV_DIR/"{"media","docker/appdata"} && \
   echo "  Creating media subdirs..." && \
   mkdir -p "$SRV_DIR/media/"{"movies","shows","music","personal_media"} && \
   echo "  Creating appdata subdirs..." && \
-  mkdir -p "$SRV_DIR/docker/appdata/"{"jellyfin/config","jellyfin/cache","sonarr/config","radarr/config","prowlarr/config","bazarr/config","jellyseerr/config","qbittorrent/config"}; } || \
+  mkdir -p "$SRV_DIR/docker/appdata/"{"jellyfin/config","jellyfin/cache"}; } || \
   { echo "Directory Creation failed."; exit 6; }
 echo "Directories Created Successfully."
 echo ""
