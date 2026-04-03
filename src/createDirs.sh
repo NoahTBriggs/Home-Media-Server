@@ -33,9 +33,7 @@
 
 # NOTE: This script must be run with root privileges to ensure that the created
 #       directories have the correct ownership and permissions for the media
-#       server applications. If you run this script without root privileges, 
-#       you may encounter permission issues when the applications try to access 
-#       these directories.
+#       server applications.
 
 # Exit Codes:
 #   0 - Success
@@ -48,6 +46,21 @@
 #   7 - Creation of SRV_USER failed or adding existing SRV_USER to docker group failed
 #   8 - Setting ownership and permissions failed
 
+# Required utilities: 
+# - chmod
+# - chown 
+# - find
+# - tar 
+# - useradd
+# - usermod
+
+###############################################################################
+
+# Change the working directory to the script's location to ensure relative
+# paths point to the correct directories and files
+cd "$(dirname "$0")"
+
+# Import utility functions for ID configuration
 source ../util/ID_Util.sh
 
 echo "Performing Root Privilege Check..."
@@ -62,11 +75,11 @@ echo ""
 echo "Starting Media Server Directory Setup..."
 echo "Importing .env configuration..."
 echo "  Checking For .env File..."
-if [ -f ".env" ]; then
+if [ -f "../res/.env" ]; then
   echo "  .env file Found..."
 else
   echo "  No .env file found. Creating one with default values..."
-  cat > .env << EOF
+  cat > ../res/.env << EOF
 ###############################################################################
 ## USER CONFIGURATION - MODIFY AS NEEDED                                      #
 ###############################################################################
@@ -74,7 +87,7 @@ else
 # Desired Media Server Directory 
 # (Will be created if it doesn't already exist)
 # (example: "/srv", "/media", "/data", etc.)
-SRV_DIR="/srv" 
+SRV_DIR="/srv-default" 
 
 # Desired User Name For Media Server Ownership 
 # (Will be created if it doesn't already exist)
@@ -140,7 +153,7 @@ if [ -d "$SRV_DIR" ] && [ ! -w "$SRV_DIR" ]; then
   exit 4
 elif [ -d "$SRV_DIR" ] && [ "$(ls -A $SRV_DIR)" ]; then
   echo "  $SRV_DIR exists, creating a backup..."
-  SRV_BACKUP="./srv_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
+  SRV_BACKUP="../srv_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
   tar -czf "$SRV_BACKUP" -C "$SRV_DIR" . || { echo "Backup Failed."; exit 5; }
   echo "    Backup created at: $SRV_BACKUP"
   echo "  Clearing $SRV_DIR for new directory structure..."
