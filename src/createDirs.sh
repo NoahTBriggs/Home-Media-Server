@@ -3,9 +3,9 @@
 # This script: 
 # - Checks for root privileges and exits if not run as root
 #
-# - Optionally automatically configures PUID and PGIDs in the .env file
+# - Optionally automatically configures PUID and PGIDs in the ../res/.env file
 #
-# - Validates the SRV_DIR and SRV_USER variables from the .env file to prevent 
+# - Validates the SRV_DIR and SRV_USER variables from the ../res/.env file to prevent 
 #   critical system directories or users from being used
 #
 # - Performs a backup of the existing SRV_DIR if it exists and is not empty, 
@@ -28,27 +28,40 @@
 #
 # - Modifies ownership and permissions of the created directories
 #
-# - Copies the docker-compose.yml and .env files to the $SRV_DIR/docker/ 
+# - Copies the docker-compose.yml and ../res/.env files to the $SRV_DIR/docker/ 
 #   directory for use by the media server applications
 
 # NOTE: This script must be run with root privileges to ensure that the created
 #       directories have the correct ownership and permissions for the media
-#       server applications. If you run this script without root privileges, 
-#       you may encounter permission issues when the applications try to access 
-#       these directories.
+#       server applications.
 
 # Exit Codes:
 #   0 - Success
 #   1 - Root privilege check failed
-#   2 - .env file failed to import
-#   3 - Validation of .env variables failed (SRV_DIR or SRV_USER)
+#   2 - ../res/.env file failed to import
+#   3 - Validation of ../res/.env variables failed (SRV_DIR or SRV_USER)
 #   4 - SRV_DIR is not writable
 #   5 - Backup of existing SRV_DIR failed or subsequent clearing of SRV_DIR failed
 #   6 - Directory creation failed
 #   7 - Creation of SRV_USER failed or adding existing SRV_USER to docker group failed
 #   8 - Setting ownership and permissions failed
 
-source ./ID_Util.sh
+# Required utilities: 
+# - chmod
+# - chown 
+# - find
+# - tar 
+# - useradd
+# - usermod
+
+###############################################################################
+
+# Change the working directory to the script's location to ensure relative
+# paths point to the correct directories and files
+cd "$(dirname "$0")"
+
+# Import utility functions for ID configuration
+source ../util/ID_Util.sh
 
 echo "Performing Root Privilege Check..."
 if [ "$EUID" -ne 0 ]; then
@@ -62,11 +75,11 @@ echo ""
 echo "Starting Media Server Directory Setup..."
 echo "Importing .env configuration..."
 echo "  Checking For .env File..."
-if [ -f ".env" ]; then
+if [ -f "../res/.env" ]; then
   echo "  .env file Found..."
 else
   echo "  No .env file found. Creating one with default values..."
-  cat > .env << EOF
+  cat > ../res/.env << EOF
 ###############################################################################
 ## USER CONFIGURATION - MODIFY AS NEEDED                                      #
 ###############################################################################
@@ -74,7 +87,7 @@ else
 # Desired Media Server Directory 
 # (Will be created if it doesn't already exist)
 # (example: "/srv", "/media", "/data", etc.)
-SRV_DIR="/srv" 
+SRV_DIR="/srv-default" 
 
 # Desired User Name For Media Server Ownership 
 # (Will be created if it doesn't already exist)
@@ -103,13 +116,13 @@ else
 fi
 
 echo "  Loading configuration from .env file..."
-export $(grep -v '^#' .env | xargs) || { echo "Failed to load configuration from .env file."; exit 2; }
+export $(grep -v '^#' ../res/.env | xargs) || { echo "Failed to load configuration from .env file."; exit 2; }
 echo "Configuration Loaded Successfully."
 
 echo "Validating SRV_DIR Value..."
 if [ "$SRV_DIR" = "" ] || [ "$SRV_DIR" = "/" ] || [ "$SRV_DIR" = "/root" ] || [ "$SRV_DIR" = "/home" ] || [[ "$SRV_DIR" =~ ^/usr|^/var|^/etc ]]; then
   echo "  Error: SRV_DIR cannot be set to a critical system directory or \"\"."
-  echo "  Please edit .env and set SRV_DIR to a safe subdirectory (e.g., \"/srv-test\")."
+  echo "  Please edit ../res/.env and set SRV_DIR to a safe subdirectory (e.g., \"/srv-test\")."
   exit 3
 fi
 echo SRV_DIR Value Validated Successfully.
@@ -118,7 +131,7 @@ echo ""
 echo "Validating SRV_USER Value..."
 if [ $SRV_USER = "" ] || [[ "$SRV_USER" =~ ^(root|admin|sudo|www-data|nobody)$ ]]; then
   echo "  Error: SRV_USER cannot be set to a critical system user or \"\""
-  echo "  Please edit .env and set SRV_USER to a safe name (e.g., \"/srv-test\")."
+  echo "  Please edit ../res/.env and set SRV_USER to a safe name (e.g., \"/srv-test\")."
   exit 3
 fi
 echo SRV_USER Value Validated Successfully.
@@ -140,7 +153,7 @@ if [ -d "$SRV_DIR" ] && [ ! -w "$SRV_DIR" ]; then
   exit 4
 elif [ -d "$SRV_DIR" ] && [ "$(ls -A $SRV_DIR)" ]; then
   echo "  $SRV_DIR exists, creating a backup..."
-  SRV_BACKUP="./srv_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
+  SRV_BACKUP="../srv_backup_$(date +%Y%m%d_%H%M%S).tar.gz"
   tar -czf "$SRV_BACKUP" -C "$SRV_DIR" . || { echo "Backup Failed."; exit 5; }
   echo "    Backup created at: $SRV_BACKUP"
   echo "  Clearing $SRV_DIR for new directory structure..."
@@ -164,20 +177,24 @@ echo "Directories Created Successfully."
 echo ""
 
 echo "Copying .YML Configuration File To $SRV_DIR/docker/..."
-if [ -f "./docker-compose.yml" ]; then 
+if [ -f "../res/docker-compose.yml" ]; then 
   echo "  Found docker-compose.yml. Copying to $SRV_DIR/docker/."
-  cp "./docker-compose.yml" "$SRV_DIR/docker/"
+  cp "../res/docker-compose.yml" "$SRV_DIR/docker/"
   echo "Copy Successful."
 else 
-  echo "  Warning: docker-compose.yml not found in current directory."
+  echo "  Warning: docker-compose.yml not found in ../res/ directory."
   echo "Copy Unsuccessful."
 fi
 
 # Copy .env file if it exists
-echo "Copying .env to $SRV_DIR/docker/..."
-cp ".env" "$SRV_DIR/docker/" && \
-echo ".env File Copied Successfully."
-echo ""
+if [ -f "../res/.env" ]; then 
+  echo "  Found .env. Copying to $SRV_DIR/docker/."
+  cp "../res/.env" "$SRV_DIR/docker/"
+  echo "Copy Successful."
+else 
+  echo "  Warning: .env not found in ../res/ directory."
+  echo "Copy Unsuccessful."
+fi
 
 echo "Setting Permissions And Ownership..."
 # Adding "$SRV_USER" user if it doesn't already exist

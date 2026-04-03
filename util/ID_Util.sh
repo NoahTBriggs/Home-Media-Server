@@ -1,5 +1,7 @@
 #!/bin/bash
 
+RES_DIR="../res"
+
 function get_render_GID() {
   echo $(getent group render | grep -oP '(?<=render:x:)(\d+)')
 }
@@ -14,15 +16,15 @@ function get_UID() {
 }
 
 function set_PGID() {
-  sed -i "s/^PGID=\"[0-9]*\"/PGID=\"$1\"/" .env
+  sed -i "s/^PGID=\"[0-9]*\"/PGID=\"$1\"/" $RES_DIR/.env
 }
 
 function set_jellyfin_PGID() {
-  sed -i "s/^JELLYFIN_PGID=\"[0-9]*\"/JELLYFIN_PGID=\"$1\"/" .env
+  sed -i "s/^JELLYFIN_PGID=\"[0-9]*\"/JELLYFIN_PGID=\"$1\"/" $RES_DIR/.env
 }
 
 function set_PUID() {
-  sed -i "s/^PUID=\"[0-9]*\"/PUID=\"$1\"/" .env
+  sed -i "s/^PUID=\"[0-9]*\"/PUID=\"$1\"/" $RES_DIR/.env
 }
 
 function set_IDs() {
