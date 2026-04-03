@@ -19,7 +19,7 @@ This project is meant to handle the initial setup of the server; further configu
 * Configure the `.env` file in the `/res` directory to your liking.
   * `PGID`, `PUID`, and `JELLYFIN_PGID` are set automatically within the `/src/createDirs.sh` script.
   * You have the option to skip this step when running the script if you'd rather preserve what's in the `.env` file.
-* Initial setup is handled by the `/src/createDirs.sh` script nearly automatically. (NOTE: This command must be prefixed by `sudo`)
+* Initial setup is handled by the `/src/createDirs.sh` script nearly automatically. (NOTE: Script execution MUST be prefixed by `sudo`)
   * Generates directory structure
   * Generates new user and group if required
   * Applies ownership and permissions automatically
@@ -51,32 +51,11 @@ Example: `http://homeserver:8096/`
 <!-- FOR ANOTHER TIME
 ## Help
 
-Any advise for common problems or issues.
-```
-command to run if program contains helper info
-```
-
 ## Authors
-
-Contributors names and contact info
-
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
 
 ## Version History
 
-* 0.2
-    * Various bug fixes and optimizations
-    * See [commit change]() or See [release history]()
-* 0.1
-    * Initial Release
-
 ## License
 
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
-
 ## Acknowledgments
-
-Inspiration, code snippets, etc.
-
 -->
