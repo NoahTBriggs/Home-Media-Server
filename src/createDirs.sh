@@ -22,9 +22,10 @@
 # │   └── personal_media     # Downloaded Personal Media (home videos, etc.)
 # └── docker               # Internal Docker Container Data
 #     └── appdata
-#         └── jellyfin
-#             ├── config
-#             └── cache
+#         ├── jellyfin
+#         │   ├── config
+#         │   └── cache
+#         └── tailscale
 #
 # - Modifies ownership and permissions of the created directories
 #
