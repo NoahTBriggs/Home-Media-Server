@@ -16,8 +16,11 @@ services:
       - /dev/net/tun:/dev/net/tun
     command: >
       sh -c "
+        tailscaled & 
+        sleep 2 && 
         tailscale up --authkey=${TS_AUTHKEY} &&
-        tailscale serve 8096 localhost:8096
+        tailscale serve 8096 &&
+        tail -f /dev/null
       "
     restart: unless-stopped
   
