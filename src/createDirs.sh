@@ -171,7 +171,7 @@ echo "Creating Directory Structure..."
   echo "  Creating media subdirs..." && \
   mkdir -p "$SRV_DIR/media/"{"movies","shows","music","personal_media"} && \
   echo "  Creating appdata subdirs..." && \
-  mkdir -p "$SRV_DIR/docker/appdata/"{"jellyfin/config","jellyfin/cache"}; } || \
+  mkdir -p "$SRV_DIR/docker/appdata/"{"jellyfin/config","jellyfin/cache","tailscale"}; } || \
   { echo "Directory Creation failed."; exit 6; }
 echo "Directories Created Successfully."
 echo ""
