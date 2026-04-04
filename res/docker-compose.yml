@@ -1,7 +1,32 @@
 services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: tailscale
+    hostname: jellyfin-node
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    volumes:
+      - ${SRV_DIR}/docker/appdata/tailscale:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    command: >
+      sh -c "
+        tailscale up --authkey=${TS_AUTHKEY} &&
+        tailscale serve 8096 localhost:8096
+      "
+    restart: unless-stopped
+  
   jellyfin:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
+    network_mode: "service:tailscale"
+    depends_on:
+      - tailscale
     user: "${PUID}:${JELLYFIN_PGID}"
     read_only: true
     tmpfs:
@@ -11,20 +36,10 @@ services:
       - ALL
     security_opt:
       - no-new-privileges:true
-    ports:
-      # (Pick One):
-      # - "127.0.0.1:8096:8096" # Not visible on LAN (localhost/server only)
-      - "8096:8096" # Visible on LAN (exposed if port forwarded)
     volumes:
       - ${SRV_DIR}/docker/appdata/jellyfin/config:/config
       - ${SRV_DIR}/docker/appdata/jellyfin/cache:/cache
-      - ${SRV_DIR}/media:/media:ro # Read-only access to media directories
+      - ${SRV_DIR}/media:/media:ro
     devices:
       - /dev/dri:/dev/dri
-    networks:
-      - media_net
     restart: unless-stopped
-
-networks:
-  media_net:
-    driver: bridge
