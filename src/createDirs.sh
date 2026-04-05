@@ -22,9 +22,10 @@
 # │   └── personal_media     # Downloaded Personal Media (home videos, etc.)
 # └── docker               # Internal Docker Container Data
 #     └── appdata
-#         └── jellyfin
-#             ├── config
-#             └── cache
+#         ├── jellyfin
+#         │   ├── config
+#         │   └── cache
+#         └── tailscale
 #
 # - Modifies ownership and permissions of the created directories
 #
@@ -171,7 +172,7 @@ echo "Creating Directory Structure..."
   echo "  Creating media subdirs..." && \
   mkdir -p "$SRV_DIR/media/"{"movies","shows","music","personal_media"} && \
   echo "  Creating appdata subdirs..." && \
-  mkdir -p "$SRV_DIR/docker/appdata/"{"jellyfin/config","jellyfin/cache"}; } || \
+  mkdir -p "$SRV_DIR/docker/appdata/"{"jellyfin/config","jellyfin/cache","tailscale"}; } || \
   { echo "Directory Creation failed."; exit 6; }
 echo "Directories Created Successfully."
 echo ""
